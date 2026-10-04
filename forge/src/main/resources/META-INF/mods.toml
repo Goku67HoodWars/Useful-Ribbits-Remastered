@@ -1,0 +1,32 @@
+modLoader = "javafml"
+loaderVersion = "[24,)"
+license = "GPL-3.0"
+
+[[mods]]
+modId = "useful_ribbits"
+version = "${version}"
+displayName = "Useful Ribbits"
+authors = "rogue_one"
+credits = "Original mod by rogue_one (Rogue_one12). Multiloader 26.2 port."
+description = "Adds job ribbits (chef, miner, farmer) that gather and craft for you."
+
+[[dependencies.useful_ribbits]]
+modId = "forge"
+mandatory = true
+versionRange = "[65,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.useful_ribbits]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[26.2,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.useful_ribbits]]
+modId = "geckolib"
+mandatory = true
+versionRange = "[5.5,)"
+ordering = "NONE"
+side = "BOTH"

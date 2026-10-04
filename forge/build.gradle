@@ -1,0 +1,139 @@
+plugins {
+    id 'com.gradleup.shadow'
+    id 'net.darkhax.curseforgegradle'
+}
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+loom {
+    // AW is applied at COMPILE via accessWidenerPath. For the Forge RUNTIME the equivalent Access
+    // Transformer is shipped by hand at META-INF/accesstransformer.cfg (loom's convertAccessWideners
+    // only writes into the thin jar, which the no-remap shadowJar never bundles). This mod has no
+    // mixins, so there is no loom.forge { mixinConfig } block.
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+
+    // Deliberately not on runtimeClasspath. Architectury hands the development run a transformed
+    // copy of the common jar, and Forge resolves both copies as modules: two modules exporting
+    // the same packages is a hard resolution failure. developmentForge is what the transformer
+    // reads, and the shadowBundle configuration is what the published jar bundles.
+    developmentForge.extendsFrom common
+
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+
+    configureEach {
+        // Minecraft ships unobfuscated, so there is nothing to translate between SRG and
+        // official names. Architectury's naming service demands a mappings file regardless and
+        // throws when it cannot find one; the access transformer parser swallows that and
+        // reports every line of Forge's own transformer as invalid, which aborts the launch.
+        exclude group: 'dev.architectury', module: 'architectury-naming-service'
+    }
+}
+
+repositories {
+    maven {
+        name = 'MinecraftForge'
+        url = 'https://maven.minecraftforge.net/'
+    }
+}
+
+dependencies {
+    forge "net.minecraftforge:forge:$rootProject.forge_version"
+
+    implementation "com.geckolib:geckolib-forge-$rootProject.minecraft_version:$rootProject.geckolib_version"
+
+    // Without remapping there is no namedElements variant, so the plain project is used.
+    common(project(':common')) { transitive false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionForge')
+}
+
+// In a development run Forge merges this project's classes and resources output directories
+// into one union filesystem and then asks that union for its module name. A union root has no
+// file name to derive a name from, so the classpath scan aborts with
+// "Invalid module name: '' is not a Java identifier" before a single mod is discovered.
+// Stating the name explicitly gives the union one. The jar carries the same attribute.
+def automaticModuleName = 'me.rogue_one.useful_ribbits.forge'
+
+def devManifest = tasks.register('devManifest') {
+    def outputDir = layout.buildDirectory.dir('generated/manifest')
+    inputs.property 'automaticModuleName', automaticModuleName
+    outputs.dir outputDir
+
+    doLast {
+        def file = outputDir.get().file('META-INF/MANIFEST.MF').asFile
+        file.parentFile.mkdirs()
+        file.text = "Manifest-Version: 1.0\r\nAutomatic-Module-Name: ${automaticModuleName}\r\n\r\n"
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    def packProps = [pack_format_number: rootProject.pack_format_number]
+    inputs.properties(packProps)
+
+    from(devManifest)
+
+    // The access widener lives in the common module; copying it here also puts it in the mod root
+    // for development runs. Forge additionally insists on a pack.mcmeta in the mod root, and in a
+    // development run the mod root is this project's own output rather than the bundled common jar.
+    from(project(':common').file('src/main/resources/useful_ribbits.accesswidener'))
+    from(project(':common').file('src/main/resources/pack.mcmeta'))
+
+    filesMatching('META-INF/mods.toml') {
+        expand version: project.version
+    }
+    filesMatching('pack.mcmeta') {
+        expand packProps
+    }
+}
+
+// Minecraft is unobfuscated, so Loom performs no remap step: the shadowed jar that
+// bundles the common module is the distributable artifact.
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = ''
+
+    // The resources carry a manifest of their own for development runs; the task writes its
+    // own first, so keeping the first copy keeps the generated one.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+jar {
+    archiveClassifier = 'thin'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes 'Automatic-Module-Name': automaticModuleName
+    }
+}
+
+assemble.dependsOn shadowJar
+
+String[] compatibleVersions = rootProject.compatible_versions.split(',')
+task publishCurseForgeForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn(tasks.shadowJar)
+    apiToken = findProperty('curseforgeApiKey') ?: ''
+    debugMode = rootProject.debug_publish.toBoolean()
+
+    def mainFile = upload(rootProject.curseforge_project_id, tasks.shadowJar.archiveFile)
+    mainFile.changelogType = 'markdown'
+    mainFile.changelog = rootProject.file('CHANGELOG.md').exists() ? rootProject.file('CHANGELOG.md').text : 'No changelog provided'
+    mainFile.releaseType = 'release'
+    mainFile.addRequirement('geckolib')
+    mainFile.addModLoader('forge')
+    mainFile.displayName = "${rootProject.mod_full_name} [Forge] ${project.version} for ${rootProject.mc_version}"
+    compatibleVersions.each { mcVersion -> mainFile.addGameVersion(mcVersion) }
+}

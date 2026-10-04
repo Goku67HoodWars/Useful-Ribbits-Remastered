@@ -1,0 +1,19 @@
+# Build output
+build/
+*/build/
+.gradle/
+
+# Dev run dirs
+run/
+runs/
+*/runs/
+*/run/
+
+# Reference-only material — not for redistribution (original author's jar + decompiled sources)
+_ref/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store

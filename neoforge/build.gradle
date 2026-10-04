@@ -1,0 +1,84 @@
+plugins {
+    id 'com.gradleup.shadow'
+    id 'net.darkhax.curseforgegradle'
+}
+
+architectury {
+    platformSetupLoomIde()
+    neoForge()
+}
+
+loom {
+    // AW applied at COMPILE; the NeoForge RUNTIME uses the hand-written
+    // META-INF/accesstransformer.cfg shipped as a resource (same reason as Forge).
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentNeoForge.extendsFrom common
+
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+repositories {
+    maven {
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases'
+    }
+}
+
+dependencies {
+    neoForge "net.neoforged:neoforge:$rootProject.neoforge_version"
+
+    implementation "com.geckolib:geckolib-neoforge-$rootProject.minecraft_version:$rootProject.geckolib_version"
+
+    // Without remapping there is no namedElements variant, so the plain project is used.
+    common(project(':common')) { transitive false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
+}
+
+processResources {
+    inputs.property 'version', project.version
+
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand version: project.version
+    }
+}
+
+// Minecraft is unobfuscated (26.2), so Loom performs no remap step: the shadowed jar that
+// bundles the common module is the distributable artifact.
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = ''
+}
+
+jar {
+    archiveClassifier = 'thin'
+}
+
+assemble.dependsOn shadowJar
+
+String[] compatibleVersions = rootProject.compatible_versions.split(',')
+task publishCurseForgeNeoForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn(tasks.shadowJar)
+    apiToken = findProperty('curseforgeApiKey') ?: ''
+    debugMode = rootProject.debug_publish.toBoolean()
+
+    def mainFile = upload(rootProject.curseforge_project_id, tasks.shadowJar.archiveFile)
+    mainFile.changelogType = 'markdown'
+    mainFile.changelog = rootProject.file('CHANGELOG.md').exists() ? rootProject.file('CHANGELOG.md').text : 'No changelog provided'
+    mainFile.releaseType = 'release'
+    mainFile.addRequirement('geckolib')
+    mainFile.addModLoader('neoforge')
+    mainFile.displayName = "${rootProject.mod_full_name} [NeoForge] ${project.version} for ${rootProject.mc_version}"
+    compatibleVersions.each { mcVersion -> mainFile.addGameVersion(mcVersion) }
+}

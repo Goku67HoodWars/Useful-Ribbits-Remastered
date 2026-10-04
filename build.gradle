@@ -1,0 +1,76 @@
+plugins {
+    // Minecraft ships unobfuscated from 26.1 onwards. There are no mappings to apply,
+    // so the no-remap flavour of Architectury Loom is used instead of the regular one.
+    id 'dev.architectury.loom-no-remap' version '1.17.491' apply false
+    id 'architectury-plugin' version '3.5.169'
+    id 'com.gradleup.shadow' version '9.6.1' apply false
+    id 'net.darkhax.curseforgegradle' version "${curseforgegradle_version}" apply false
+}
+
+architectury {
+    minecraft = project.mc_version
+}
+
+allprojects {
+    group = rootProject.maven_group
+    version = project.findProperty('fileVersion') ?: rootProject.version
+}
+
+subprojects {
+    apply plugin: 'dev.architectury.loom-no-remap'
+    apply plugin: 'architectury-plugin'
+    apply plugin: 'maven-publish'
+
+    base {
+        // Jar names like `UsefulRibbits-26.2-Fabric` (+ `-1.0.0.jar` from version).
+        def loaderDisplay = [fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge'][project.name] ?: project.name.capitalize()
+        archivesName = "${rootProject.mod_name}-${rootProject.mc_version}-${loaderDisplay}"
+    }
+
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    name = 'GeckoLib'
+                    url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+                }
+            }
+            filter { includeGroup('com.geckolib') }
+        }
+    }
+
+    configurations.configureEach {
+        // Guava pulls in an empty placeholder jar whose file name yields an invalid Java module
+        // name, which aborts Forge's classpath scan before it ever reaches the mods.
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:$rootProject.mc_version"
+    }
+
+    java {
+        withSourcesJar()
+
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(rootProject.java_version.toInteger())
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        it.options.encoding = 'UTF-8'
+        it.options.release = rootProject.java_version.toInteger()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId = base.archivesName.get()
+                from components.java
+            }
+        }
+        repositories {
+            // Add repositories to publish to here.
+        }
+    }
+}

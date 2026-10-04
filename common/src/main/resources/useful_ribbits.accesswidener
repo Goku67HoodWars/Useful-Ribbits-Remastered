@@ -1,0 +1,10 @@
+accessWidener	v2	official
+
+# MenuType private ctor + private register, and MenuScreens private register (no Fabric
+# screen-registry / ExtendedScreenHandlerType in fabric-api 0.161) — needed to register our
+# menu types and their client screen factories.
+accessible method net/minecraft/world/inventory/MenuType <init> (Lnet/minecraft/world/inventory/MenuType$MenuSupplier;Lnet/minecraft/world/flag/FeatureFlagSet;)V
+accessible class net/minecraft/world/inventory/MenuType$MenuSupplier
+accessible class net/minecraft/world/item/CreativeModeTab$Output
+accessible class net/minecraft/client/gui/screens/MenuScreens$ScreenConstructor
+accessible method net/minecraft/client/gui/screens/MenuScreens register (Lnet/minecraft/world/inventory/MenuType;Lnet/minecraft/client/gui/screens/MenuScreens$ScreenConstructor;)V

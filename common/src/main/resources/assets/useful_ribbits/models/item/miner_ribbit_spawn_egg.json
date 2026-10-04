@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "useful_ribbits:item/miner_ribbit_spawn_egg"
+  }
+}

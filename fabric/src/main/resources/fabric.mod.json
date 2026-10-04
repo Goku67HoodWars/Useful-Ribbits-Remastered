@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "useful_ribbits",
+  "version": "${version}",
+  "name": "Useful Ribbits",
+  "description": "Adds job ribbits (chef, miner, farmer) that gather and craft for you.",
+  "authors": [ "rogue_one" ],
+  "license": "GPL-3.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [ "me.rogue_one.useful_ribbits.fabric.UsefulRibbitsFabric" ],
+    "client": [ "me.rogue_one.useful_ribbits.fabric.client.UsefulRibbitsFabricClient" ]
+  },
+  "accessWidener": "useful_ribbits.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "minecraft": "~26.2",
+    "fabric-api": "*",
+    "geckolib": ">=5.5.3"
+  }
+}

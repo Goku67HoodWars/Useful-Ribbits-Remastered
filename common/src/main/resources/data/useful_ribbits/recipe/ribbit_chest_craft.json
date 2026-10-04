@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:chest",
+    "minecraft:slime_ball"
+  ],
+  "result": {
+    "id": "useful_ribbits:ribbit_chest",
+    "count": 1
+  }
+}

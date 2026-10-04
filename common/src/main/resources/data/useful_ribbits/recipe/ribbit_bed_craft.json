@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "a  ",
+    "bcb"
+  ],
+  "key": {
+    "a": "#minecraft:planks",
+    "b": "minecraft:stick",
+    "c": "#useful_ribbits:bed_base"
+  },
+  "result": {
+    "id": "useful_ribbits:ribbit_bed",
+    "count": 1
+  }
+}

@@ -1,0 +1,95 @@
+plugins {
+    id 'com.gradleup.shadow'
+    id 'net.darkhax.curseforgegradle'
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+loom {
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+}
+
+configurations {
+    common {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+
+    // Files in this configuration get bundled into the mod jar by the Shadow plugin.
+    shadowBundle {
+        canBeResolved = true
+        canBeConsumed = false
+    }
+}
+
+dependencies {
+    implementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    implementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_version+$rootProject.mc_version"
+
+    implementation "com.geckolib:geckolib-fabric-$rootProject.mc_version:$rootProject.geckolib_version"
+
+    // Without remapping there is no namedElements variant, so the plain project is used.
+    common(project(':common')) { transitive false }
+    shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
+}
+
+processResources {
+    def expandProps = [
+            'version'                : project.version,
+            'mc_version'             : rootProject.mc_version,
+            'mc_version_range_fabric': rootProject.mc_version_range_fabric,
+            'fabric_version'         : rootProject.fabric_version,
+            'fabric_loader_version'  : rootProject.fabric_loader_version,
+            'geckolib_version_fabric': rootProject.geckolib_version_fabric,
+            'mod_id'                 : rootProject.mod_id,
+            'mod_full_name'          : rootProject.mod_full_name,
+            'mod_description'        : rootProject.mod_description,
+            'license'                : rootProject.license,
+            'java_version'           : rootProject.java_version
+    ]
+    inputs.properties(expandProps)
+
+    // fabric.mod.json declares accessWidener: useful_ribbits.accesswidener, so the file must sit
+    // in the fabric jar root; it lives in the common module.
+    from(project(':common').file('src/main/resources/useful_ribbits.accesswidener'))
+
+    filesMatching('fabric.mod.json') {
+        expand expandProps
+    }
+}
+
+// Minecraft is unobfuscated, so Loom performs no remap step: the shadowed jar that
+// bundles the common module is the distributable artifact.
+shadowJar {
+    configurations = [project.configurations.shadowBundle]
+    archiveClassifier = ''
+}
+
+jar {
+    archiveClassifier = 'thin'
+}
+
+assemble.dependsOn shadowJar
+
+String[] compatibleVersions = rootProject.compatible_versions.split(',')
+task publishCurseForgeFabric(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    dependsOn(tasks.shadowJar)
+    apiToken = findProperty('curseforgeApiKey') ?: ''
+    debugMode = rootProject.debug_publish.toBoolean()
+
+    def mainFile = upload(rootProject.curseforge_project_id, tasks.shadowJar.archiveFile)
+    mainFile.changelogType = 'markdown'
+    mainFile.changelog = rootProject.file('CHANGELOG.md').exists() ? rootProject.file('CHANGELOG.md').text : 'No changelog provided'
+    mainFile.releaseType = 'release'
+    mainFile.addRequirement('fabric-api')
+    mainFile.addRequirement('geckolib')
+    mainFile.addModLoader('fabric')
+    mainFile.displayName = "${rootProject.mod_full_name} [Fabric] ${project.version} for ${rootProject.mc_version}"
+    compatibleVersions.each { mcVersion -> mainFile.addGameVersion(mcVersion) }
+}
