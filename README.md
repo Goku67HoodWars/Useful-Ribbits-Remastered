@@ -15,6 +15,18 @@ continuation with the blessing of the original author, **Rogue_one12**.
 
 - Minecraft **26.2** — **Fabric, Forge, and NeoForge**.
 
+## Porting & development docs
+
+Written up in [`docs/`](docs) for anyone continuing or rebuilding this mod:
+
+- [**Porting Playbook**](docs/Porting-Playbook.md) — a reusable, loader/version-agnostic guide to
+  porting any Minecraft mod (decision tree, toolchain, cross-loader map, API-change cheatsheet,
+  GUI/render cookbook, crash-guard patterns, validation, distribution, difficulty tiering).
+- [**Useful Ribbits Port Case Study**](docs/Useful-Ribbits-Port-Case-Study.md) — the true 1:1 account
+  of taking this mod from 1.20.1 Forge to 26.2 on all three loaders, including the hard bugs.
+- [**Writing a 26.2 Mod From Scratch**](docs/Writing-A-26.2-Mod-From-Scratch.md) — a greenfield
+  companion: clean multiloader layout, modern registration, the data-component + retained-render model.
+
 ## Credits
 
 - Original **Useful Ribbits** mod by **rogue_one (Rogue_one12)** — concept, design, art, and code.
