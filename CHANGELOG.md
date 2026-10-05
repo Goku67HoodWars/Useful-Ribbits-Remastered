@@ -1,41 +1,31 @@
-# Useful Ribbits — Multiloader 26.2 — 1.0.0
+# Useful Ribbits 26.3 — 1.0.0
 
-## 🐸 Job Ribbits, Now On 26.2
+## 🐸 Minecraft 26.3 — Fabric, Forge & NeoForge
 
-- 🌿 Ported **Useful Ribbits** from 1.20.1 Forge to **Minecraft 26.2** as a single Architectury codebase running on **Fabric, Forge, and NeoForge**.
-- 🧩 Rebuilt registration, networking, menus, and the config screen cross-loader, and trimmed unused dependencies so **GeckoLib** is the only runtime requirement.
+- Multi-loader release for **Minecraft 26.3** on **Fabric, Forge, and NeoForge**, built from one
+  Architectury codebase.
+- Job ribbits intact: **chef** (cooks raw food in nearby smokers), **miner**, and **farmer**
+  (plants and tends crops), assigned from the ribbit bed. Only runtime dependency is **GeckoLib**
+  (plus **Fabric API** on the Fabric build).
 
-## 👨‍🍳 Chef, ⛏️ Miner, 🌾 Farmer
+## 🔧 What the 26.2 → 26.3 port touched
 
-- 🍖 **Chef ribbits** now spread across *all* nearby smokers instead of crowding one, prefer smokers that already have fuel, and move to newly placed smokers.
-- 🌱 **Farmer ribbits** replant from their held seeds after a crop is harvested or broken, instead of standing idle around the chest.
-- 🔎 Improved job scanning so ribbits get stuck far less often when there is actually work to do.
+Useful Ribbits has no custom worldgen/blocks/mixins, so the 26.3 delta was small:
 
-## 🛏️ Ribbit Bed
-
-- 💥 Fixed the ribbit bed crashing the game when opened.
-- 👀 Fixed the bed's three job previews all rendering as the same ribbit on **Forge** — each slot now renders independently, so Fabric, Forge, and NeoForge all show chef, miner, and farmer distinctly.
-- 🧾 The bed recipe accepts a toadstool from either this port or the official Ribbits mod.
-
-## 📦 Ribbit Chest & 🥚 Spawn Eggs
-
-- 📦 Added a proper **chest-opening animation** to the ribbit chest.
-- 🥚 Fixed the chef / miner / farmer spawn eggs showing the missing-texture checkerboard — each egg now uses its correct tinted icon.
-
-## ⚙️ Config & Polish
-
-- 🔊 Added a config option for how often ribbits croak (ambient sound frequency).
-- 🩹 Fixed a Fabric startup crash and a batch of smaller issues surfaced by a full code audit.
+- 🎨 **Rendering** — `PoseStack.mulPose(Quaternion)` → `rotate(Quaternion)` in the bed-preview renderer.
+- 🧾 **Inventory API** — `Inventory.placeItemBackInInventory` now takes a `Prediction` argument; the
+  server-side container dump on GUI close uses `SERVER_ONLY`.
+- 🧾 **Datapack** — loot-table condition/function discriminators unified to `"type"`.
+- 🧩 **Fabric metadata** — the Minecraft range was widened to `>=26.3 <26.4` (the old `~26.2` rejected 26.3).
+- 🛠️ **Toolchain** — pinned LWJGL to 3.4.1 so the Architectury transformer packages cleanly on 26.3.
 
 ## 🧪 Tested
 
-- ✅ Built and runtime-verified on **Fabric, Forge, and NeoForge** for **Minecraft 26.2**.
-- ✅ Checked job behavior (cooking, farming), the ribbit bed previews, the chest animation, spawn eggs, the recipe, and the croak config.
+- ✅ Runtime-verified on **Fabric, Forge, and NeoForge** for Minecraft 26.3.
 
 ## 💚 Credits
 
-- 🐸 Original **Useful Ribbits** mod, concept, art, and design by **rogue_one (Rogue_one12)**.
-- 🔗 Official CurseForge page: https://www.curseforge.com/minecraft/mc-mods/useful-ribbits
-- 🛠️ Built on the **Ribbits** mod (base ribbit and assets © Refresh Studios & Bonsai Studios) and powered by **GeckoLib**.
+- Original **Useful Ribbits** by **rogue_one (Rogue_one12)**. Builds on the **Ribbits** mod; the base
+  ribbit and its assets remain © Refresh Studios & Bonsai Studios. Animations by **GeckoLib**.
 
-Published as a community 26.2 continuation with the blessing of the original author.
+Published as a community continuation with the original author's blessing.

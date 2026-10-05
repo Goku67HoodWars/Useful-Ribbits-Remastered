@@ -14,7 +14,7 @@
   "accessWidener": "useful_ribbits.accesswidener",
   "depends": {
     "fabricloader": ">=0.19.0",
-    "minecraft": "~26.2",
+    "minecraft": "${mc_version_range_fabric}",
     "fabric-api": "*",
     "geckolib": ">=5.5.3"
   }

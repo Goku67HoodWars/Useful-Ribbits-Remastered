@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import me.rogue_one.useful_ribbits.init.UsefulRibbitsModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -89,7 +90,7 @@ public class RibbitBedGUIMenu extends AbstractContainerMenu implements Supplier<
          for (int i = 0; i < this.container.getContainerSize(); i++) {
             ItemStack stack = this.container.removeItemNoUpdate(i);
             if (!stack.isEmpty()) {
-               serverPlayer.getInventory().placeItemBackInInventory(stack);
+               serverPlayer.getInventory().placeItemBackInInventory(stack, Prediction.SERVER_ONLY);
             }
          }
       }

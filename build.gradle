@@ -43,6 +43,17 @@ subprojects {
         // Guava pulls in an empty placeholder jar whose file name yields an invalid Java module
         // name, which aborts Forge's classpath scan before it ever reaches the mods.
         exclude group: 'com.google.guava', module: 'listenablefuture'
+
+        // 26.3's NeoForge/Forge classpath pulls LWJGL 3.4.3, whose META-INF/versions/27 (Java 27)
+        // multi-release classes the Architectury transformer's bundled ASM is too old to read
+        // (`Unsupported class file major version 71`). LWJGL is runtime-provided and never bundled in
+        // the mod jar, so pin the BUILD to 3.4.1 (tops out at versions/25) purely so the remap/transform
+        // step can read it. Remove once a newer Architectury loom bundles a Java-27-capable ASM.
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.lwjgl') {
+                details.useVersion '3.4.1'
+            }
+        }
     }
 
     dependencies {

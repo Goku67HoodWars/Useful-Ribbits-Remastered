@@ -61,7 +61,7 @@ public class RibbitPreviewPipRenderer extends PictureInPictureRenderer<RibbitPre
       Minecraft.getInstance().gameRenderer.lighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
       var translation = state.translation();
       poseStack.translate(translation.x(), translation.y(), translation.z());
-      poseStack.mulPose(state.rotation());
+      poseStack.rotate(state.rotation());
       Quaternionfc override = state.overrideCameraAngle();
       CameraRenderState camera = new CameraRenderState();
       if (override != null) {
